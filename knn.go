@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/ekzhu/lsh"
+	"github.com/riandyrn/lsh"
 )
 
 // KNN is the index for searching nearest neighbors.
