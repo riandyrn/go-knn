@@ -132,3 +132,18 @@ func (n *KNN) Delete(docID string) error {
 
 	return nil
 }
+
+// Get is used to get single document from index.
+// If document not found returns nil instead.
+func (n *KNN) Get(docID string) (Document, error) {
+	// check input validity
+	if len(docID) == 0 {
+		return nil, fmt.Errorf("document id must not empty")
+	}
+	// load document from doc map
+	v, ok := n.docMap.Load(docID)
+	if !ok {
+		return nil, nil
+	}
+	return v.(Document), nil
+}
