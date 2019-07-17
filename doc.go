@@ -4,7 +4,6 @@ package knn
 type Document interface {
 	GetID() string
 	GetVector() []float64
-	GetDistance(vector []float64) (float64, error)
 }
 
 // ResultDocument is wrapper for Document but with

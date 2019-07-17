@@ -2,6 +2,7 @@ package knn
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"sync"
 
@@ -13,6 +14,10 @@ import (
 type KNN struct {
 	// LSH index which will be used for indexing documents
 	lsh *lsh.BasicLsh
+
+	// We also store value of vector dimension because we
+	// still need it for input validation
+	vectorDimension int
 
 	// We use another map because LSH index only stores document
 	// id, so to get full information of document we need another
@@ -38,6 +43,7 @@ type KNN struct {
 // nearest neighbors.
 func NewKNN(configs Configs) *KNN {
 	return &KNN{
+		vectorDimension: configs.VectorDimension,
 		lsh: lsh.NewBasicLsh(
 			configs.VectorDimension,
 			configs.NumHashTable,
@@ -53,6 +59,10 @@ func (n *KNN) Add(doc Document) error {
 	// check input validity
 	if doc == nil || len(doc.GetID()) == 0 || len(doc.GetVector()) == 0 {
 		return fmt.Errorf("trying to insert bad document")
+	}
+	dim := len(doc.GetVector())
+	if dim != n.vectorDimension {
+		return fmt.Errorf("unexpected vector dimension, expected: %v, got: %v", n.vectorDimension, dim)
 	}
 	// acquire lock
 	n.mux.Lock()
@@ -93,10 +103,7 @@ func (n *KNN) Query(vector []float64, k int) ([]ResultDocument, error) {
 			continue
 		}
 		doc := v.(Document)
-		distance, err := doc.GetDistance(vector)
-		if err != nil {
-			continue
-		}
+		distance := calcDistance(doc.GetVector(), vector)
 		resultDocs = append(resultDocs, ResultDocument{
 			Document: doc,
 			Distance: distance,
@@ -111,6 +118,18 @@ func (n *KNN) Query(vector []float64, k int) ([]ResultDocument, error) {
 		resultDocs = resultDocs[:k]
 	}
 	return resultDocs, nil
+}
+
+// calcDistance is used for calculating vector distance using
+// euclidean formula. Input `v1` & `v2` assummed has same dimension.
+func calcDistance(v1, v2 []float64) float64 {
+	sum := 0.0
+	for i := 0; i < len(v1); i++ {
+		sum += math.Pow(float64(v2[i]-v1[i]), 2.0)
+	}
+	distance := math.Sqrt(sum)
+
+	return distance
 }
 
 // Delete is used to delete appointed document from index.
