@@ -5,10 +5,13 @@
 
 KNN In-Memory Index for Go. Extension of Basic LSH Algorithm implemented by [@ekzhu](https://github.com/ekzhu/lsh).
 
+For sample usage, checkout `/example` dir
+
 **Added Features:**
 
 - Index is safe to be accessed concurrently
-- User could put whole struct in the index, not only its id
+- User could put whole document in the index, not only its id
+- Added true distance comparison for documents inside the bucket to eliminate false positives
 
 **Great Resources:**
 
